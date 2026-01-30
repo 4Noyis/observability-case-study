@@ -1,0 +1,87 @@
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    # Thanos sidecar - 90 gün object storage
+    thanos:
+      image: quay.io/thanos/thanos:v0.34.0
+      objectStorageConfig:
+        secret:
+          type: S3
+          config:
+            bucket: metrics
+            endpoint: minio.default.svc.cluster.local:9000
+            access_key: admin
+            secret_key: minio123456
+            insecure: true
+
+    additionalScrapeConfigs: []
+
+grafana:
+  enabled: true
+  adminPassword: admin123
+  service:
+    type: NodePort
+    nodePort: 30030
+
+alertmanager:
+  enabled: true
+  service:
+    type: NodePort
+    nodePort: 30093
+  config:
+    global:
+      smtp_smarthost: "smtp.gmail.com:587"
+      smtp_from: "bberenalp@gmail.com"
+      smtp_auth_username: "bberenalp@gmail.com"
+      smtp_auth_password: "____ ____ ____ ____"
+      smtp_require_tls: true
+    route:
+      receiver: "email-alerts"
+      group_by: ["alertname"]
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 5m
+    receivers:
+      - name: "email-alerts"
+        email_configs:
+          - to: "bberenalp@gmail.com"
+            send_resolved: true
+      - name: "null"
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+additionalPrometheusRulesMap:
+  custom-alerts:
+    groups:
+      - name: resource-alerts
+        rules:
+          # CPU %200 - 5 dakika
+          - alert: HighCPUUsage
+            expr: (sum(rate(container_cpu_usage_seconds_total{namespace="default"}[5m])) by (pod) / sum(kube_pod_container_resource_requests{namespace="default", resource="cpu"}) by (pod)) * 100 > 200
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod {{ $labels.pod }} CPU %200 üzerinde"
+              description: "Pod {{ $labels.pod }} 5 dakikadır CPU request'inin %200'ünden fazla kullanıyor. Mevcut: {{ $value }}%"
+          # Memory %90 - 1 dakika
+          - alert: HighMemoryUsage
+            expr: (sum(container_memory_usage_bytes{namespace="default"}) by (pod) / sum(kube_pod_container_resource_limits{namespace="default", resource="memory"}) by (pod)) * 100 > 90
+            for: 1m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod {{ $labels.pod }} Memory %90 üzerinde"
+              description: "Pod {{ $labels.pod }} 1 dakikadır Memory limitinin %90'ından fazla kullanıyor. Mevcut: {{ $value }}%"

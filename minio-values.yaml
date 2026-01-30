@@ -1,0 +1,24 @@
+mode: standalone
+
+rootUser: admin
+rootPassword: minio123456
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+consoleService:
+  type: NodePort
+  nodePort: 30901
+
+service:
+  type: NodePort
+  nodePort: 30900
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 100m
+  limits:
+    memory: 512Mi
+    cpu: 500m

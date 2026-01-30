@@ -1,0 +1,79 @@
+loki:
+  auth_enabled: false
+  
+  commonConfig:
+    replication_factor: 1
+  
+  storage:
+    type: s3
+    s3:
+      endpoint: http://minio.default.svc.cluster.local:9000
+      accessKeyId: admin
+      secretAccessKey: minio123456
+      s3ForcePathStyle: true
+      insecure: true
+    bucketNames:
+      chunks: loki-logs
+      ruler: loki-logs
+      admin: loki-logs
+
+  schemaConfig:
+    configs:
+      - from: 2024-01-01
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  limits_config:
+    retention_period: 2160h
+
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+
+  ingester:
+    lifecycler:
+      ring:
+        replication_factor: 1
+
+deploymentMode: SingleBinary
+
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+write:
+  replicas: 0
+
+read:
+  replicas: 0
+
+backend:
+  replicas: 0
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+monitoring:
+  selfMonitoring:
+    enabled: false
+  lokiCanary:
+    enabled: false
+
+test:
+  enabled: false
+
+gateway:
+  enabled: false
