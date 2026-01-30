@@ -103,7 +103,7 @@ Explore → Loki → namespace=default → Run query       -> Logları görmek i
                         └─────────────────┘
 ```
 
-3: Grafik oluşturma  
+## 3: Grafik oluşturma  
 
 - Görev: Topladığınız metrikleri seçeceğiniz bir tool ile görselleştirin
 - Ödev Detayı: Topladığınız pod ve node metriklerini seçtiğiniz bir tool üzerinde grafik haline getirin. Tool helm ile kurulucak.
@@ -139,7 +139,7 @@ sum(container_memory_usage_bytes{namespace="default"}) by (pod) / 1024 / 1024
 ```
 
 
-4: Kelime ile arama (search)  
+## 4: Kelime ile arama (search)  
 
 - Görev: Logların içerisinde arama yapın
 - Ödev Detayı: Topladığınız pod ve nodeların loglarının içerisinde "error" ve "info" kelimelerini aratın ve kaç adet bulduğunuzu görselleştirin
@@ -189,8 +189,7 @@ Query B: sum(count_over_time({namespace="default"} |= "info" [5m]))
 
 ```
 
-
-5: Alarm üretme  
+## 5: Alarm üretme  
 
 - Görev: CPU ve Memory kullanımı için alarm üzeretin
 - Ödev Detayı:  CPU utilization 5 dakika boyunca %200 kullanıldığında ve Memory kullanımı  1 dakika boyunca %90 olduğunda alarm üretin
